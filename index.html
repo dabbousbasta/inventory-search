@@ -428,17 +428,22 @@
     }
 
     function search() {
-        if (data.length === 0) {
-            alert('❗ لم يتم تحميل البيانات بعد. تأكد أن ملف «جرد المواد.xlsx» موجود وتم تحميل الصفحة كاملة.');
-            return;
-        }
+    if (data.length === 0) {
+        alert('❗ لم يتم تحميل البيانات بعد. تأكد أن ملف «جرد المواد.xlsx» موجود وتم تحميل الصفحة كاملة.');
+        return;
+    }
 
-        const s1 = document.getElementById('search1').value.trim().toLowerCase();
-        const s2 = document.getElementById('search2').value.trim().toLowerCase();
-        const s3 = document.getElementById('search3').value.trim().toLowerCase();
-        const wh = document.getElementById('warehouse').value.trim().toLowerCase();
+    const s1 = document.getElementById('search1').value.trim().toLowerCase();
+    const s2 = document.getElementById('search2').value.trim().toLowerCase();
+    const s3 = document.getElementById('search3').value.trim().toLowerCase();
+    const wh = document.getElementById('warehouse').value.trim().toLowerCase();
 
-        let results = data.filter(row => {
+    // لو كل الحقول فاضية → رجّع كل البيانات بدون فلترة
+    let results;
+    if (!s1 && !s2 && !s3 && !wh) {
+        results = [...data]; // نسخة من كل الصفوف
+    } else {
+        results = data.filter(row => {
             const warehouse = ((row[1] || '') + '').toLowerCase(); // B
             const itemName  = ((row[2] || '') + '').toLowerCase(); // C
 
@@ -449,6 +454,47 @@
 
             return match1 && match2 && match3 && matchWh;
         });
+    }
+
+    // ترتيب حسب اسم المادة
+    results.sort((a, b) => {
+        const nameA = (a[2] || '').toString();
+        const nameB = (b[2] || '').toString();
+        return nameA.localeCompare(nameB, 'ar');
+    });
+
+    const tbody = document.getElementById('resultsBody');
+    tbody.innerHTML = '';
+
+    if (results.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="no-results">لا توجد نتائج مطابقة</td></tr>';
+    } else {
+        results.forEach(row => {
+            const warehouse = row[1] || '';
+            const itemName  = row[2] || '';
+            const qtyRaw    = row[3];
+            const priceRaw  = row[4];
+
+            const qty   = formatQty(qtyRaw);
+            const price = formatPrice(priceRaw);
+
+            const tr = document.createElement('tr');
+            const bgColor = getColorForWarehouse(warehouse.toString());
+            tr.style.backgroundColor = bgColor;
+
+            tr.innerHTML = `
+                <td>${warehouse}</td>
+                <td>${itemName}</td>
+                <td>${qty}</td>
+                <td>${price}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById('results').style.display = 'table';
+}
+
 
         // ترتيب حسب اسم المادة
         results.sort((a, b) => {
