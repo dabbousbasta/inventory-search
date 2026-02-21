@@ -30,8 +30,6 @@
             flex-direction: column;
         }
 
-        /* الهيدر */
-
         header {
             background: white;
             border-bottom: 1px solid #ddd;
@@ -90,8 +88,6 @@
             white-space: nowrap;
         }
 
-        /* المحتوى */
-
         main {
             flex: 1;
             padding: 12px 16px 24px;
@@ -120,8 +116,6 @@
             color: #777;
             margin-top: 4px;
         }
-
-        /* نموذج البحث */
 
         .search-grid {
             display: grid;
@@ -188,8 +182,6 @@
             transform: translateY(1px);
         }
 
-        /* جدول النتائج */
-
         .table-wrapper {
             width: 100%;
             overflow-x: auto;
@@ -216,17 +208,11 @@
             z-index: 1;
         }
 
-        tr:nth-child(even) td {
-            background: #fafafa;
-        }
-
         .no-results {
             text-align: center;
             padding: 16px 0;
             color: #c00;
         }
-
-        /* موبايل: تبسيط التخطيط */
 
         @media (max-width: 768px) {
             header {
@@ -285,7 +271,6 @@
     <header>
         <div class="brand">
             <div class="brand-logo">
-                <!-- تأكد أن ملف الشعار اسمه logo.png في نفس المجلد -->
                 <img src="logo.png" alt="شعار دبوس البسطة" />
             </div>
             <div class="brand-text">
@@ -314,7 +299,7 @@
 
             <div class="search-grid">
                 <div class="field-group">
-                    <label for="search1">كلمة بحث 1 (إجباري أو اتركه فاضي)</label>
+                    <label for="search1">كلمة بحث 1</label>
                     <input type="text" id="search1" placeholder="مثال: دق">
                 </div>
                 <div class="field-group">
@@ -363,6 +348,37 @@
 <script>
     let data = [];
 
+    function formatQty(value) {
+        const num = Number(value);
+        if (isNaN(num)) return value || '';
+        return num.toLocaleString('ar-EG', { maximumFractionDigits: 0 });
+    }
+
+    function formatPrice(value) {
+        const num = Number(value);
+        if (isNaN(num)) return value || '';
+        return num.toLocaleString('ar-EG', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // دالة توليد لون ثابت لكل مستودع
+    function getColorForWarehouse(name) {
+        if (!name) return '#ffffff';
+        const colors = [
+            '#e3f2fd', '#e8f5e9', '#fff3e0',
+            '#f3e5f5', '#e0f7fa', '#fbe9e7',
+            '#ede7f6', '#f9fbe7'
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % colors.length;
+        return colors[index];
+    }
+
     async function loadExcel() {
         const statusEl = document.getElementById('loadStatus');
         try {
@@ -376,8 +392,7 @@
             const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'array'});
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const allRows = XLSX.utils.sheet_to_json(sheet, {header:1});
-            // الصف 1 و2 فوق، الصف 3 رؤوس، البيانات من الصف 4
-            data = allRows.slice(3);
+            data = allRows.slice(3); // من الصف الرابع
             statusEl.textContent = '✅ تم تحميل ' + data.length + ' صنف من الملف.';
         } catch (e) {
             console.error(e);
@@ -406,8 +421,8 @@
         const wh = document.getElementById('warehouse').value.trim().toLowerCase();
 
         let results = data.filter(row => {
-            const warehouse = ((row[1] || '') + '').toLowerCase(); // B: المستودع
-            const itemName  = ((row[2] || '') + '').toLowerCase(); // C: اسم المادة
+            const warehouse = ((row[1] || '') + '').toLowerCase(); // B
+            const itemName  = ((row[2] || '') + '').toLowerCase(); // C
 
             const match1 = !s1 || itemName.includes(s1);
             const match2 = !s2 || itemName.includes(s2);
@@ -417,7 +432,7 @@
             return match1 && match2 && match3 && matchWh;
         });
 
-        // ترتيب حسب اسم المادة أبجدياً
+        // ترتيب حسب اسم المادة
         results.sort((a, b) => {
             const nameA = (a[2] || '').toString();
             const nameB = (b[2] || '').toString();
@@ -433,10 +448,16 @@
             results.forEach(row => {
                 const warehouse = row[1] || '';
                 const itemName  = row[2] || '';
-                const qty       = row[3] || '';
-                const price     = row[4] || '';
+                const qtyRaw    = row[3];
+                const priceRaw  = row[4];
+
+                const qty   = formatQty(qtyRaw);
+                const price = formatPrice(priceRaw);
 
                 const tr = document.createElement('tr');
+                const bgColor = getColorForWarehouse(warehouse.toString());
+                tr.style.backgroundColor = bgColor;
+
                 tr.innerHTML = `
                     <td>${warehouse}</td>
                     <td>${itemName}</td>
@@ -450,7 +471,6 @@
         document.getElementById('results').style.display = 'table';
     }
 
-    // تحميل الملف مباشرة عند فتح الصفحة
     loadExcel();
 </script>
 </body>
