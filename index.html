@@ -1,72 +1,402 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <title>🔍 بحث الأصناف - دبوس البسطة</title>
+    <meta charset="UTF-8" />
+    <title>بحث الأصناف - دبوس البسطة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; direction: rtl; text-align: right; margin: 20px; }
-        h1 { color: #0056b3; }
-        input, button { padding: 6px 10px; margin: 4px; font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-        th { background: #0056b3; color: white; }
-        tr:nth-child(even) { background: #f9f9f9; }
-        .note { color: #888; font-size: 12px; }
+        :root {
+            --primary: #0056b3;
+            --primary-light: #e6f0ff;
+            --bg: #f5f7fb;
+            --text: #222;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            direction: rtl;
+            text-align: right;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* الهيدر */
+
+        header {
+            background: white;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        .brand-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .brand-text-title {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        .brand-text-sub {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status-pill {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: var(--primary-light);
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        /* المحتوى */
+
+        main {
+            flex: 1;
+            padding: 12px 16px 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .note {
+            font-size: 11px;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        /* نموذج البحث */
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        label {
+            font-size: 11px;
+            color: #555;
+        }
+
+        input[type="text"] {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 13px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px #c7ddff;
+        }
+
+        .search-actions {
+            margin-top: 8px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #eee;
+            color: #444;
+        }
+
+        .btn-primary:active,
+        .btn-secondary:active {
+            transform: translateY(1px);
+        }
+
+        /* جدول النتائج */
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            min-width: 480px;
+        }
+
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 6px 4px;
+            font-size: 12px;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 16px 0;
+            color: #c00;
+        }
+
+        /* موبايل: تبسيط التخطيط */
+
+        @media (max-width: 768px) {
+            header {
+                padding: 8px 10px;
+            }
+
+            .brand-logo {
+                width: 42px;
+                height: 42px;
+            }
+
+            .brand-text-title {
+                font-size: 16px;
+            }
+
+            main {
+                padding: 10px 8px 18px;
+            }
+
+            .card {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            .search-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            table {
+                font-size: 11px;
+                min-width: 360px;
+            }
+
+            th, td {
+                padding: 5px 3px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-pill {
+                display: none;
+            }
+
+            .brand-text-sub {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>🔍 بحث الأصناف - دبوس البسطة</h1>
-    <p class="note">الملف يُحمَّل تلقائياً من نفس المجلد باسم <b>جرد المواد.xlsx</b></p>
+<div class="app-shell">
+    <header>
+        <div class="brand">
+            <div class="brand-logo">
+                <!-- تأكد أن ملف الشعار اسمه logo.png في نفس المجلد -->
+                <img src="logo.png" alt="شعار دبوس البسطة" />
+            </div>
+            <div class="brand-text">
+                <div class="brand-text-title">دبوس البسطة</div>
+                <div class="brand-text-sub">محرك بحث جرد المواد (مستودع - مادة - عدد - سعر مبيع)</div>
+            </div>
+        </div>
+        <div class="status-pill">
+            📦 ملف: «جرد المواد.xlsx»
+        </div>
+    </header>
 
-    <div>
-        <input type="text" id="search1" placeholder="كلمة بحث 1 (مثال: دق)">
-        <input type="text" id="search2" placeholder="كلمة بحث 2 (اختياري)">
-        <input type="text" id="search3" placeholder="كلمة بحث 3 (اختياري)">
-        <input type="text" id="warehouse" placeholder="جزء من اسم المستودع (اختياري)">
-        <button onclick="search()">🔍 بحث</button>
-    </div>
+    <main>
+        <section class="card">
+            <div class="card-title">🔁 تحميل بيانات الجرد</div>
+            <div class="note">
+                يتم تحميل الملف <b>جرد المواد.xlsx</b> تلقائياً من نفس المجلد (GitHub Pages). عند تحديث الملف، ارفع النسخة الجديدة بنفس الاسم.
+            </div>
+            <div id="loadStatus" class="note" style="margin-top:6px;color:#c60;">
+                جاري تحميل البيانات...
+            </div>
+        </section>
 
-    <table id="results" style="display:none;">
-        <thead>
-            <tr>
-                <th>المستودع</th>
-                <th>اسم المادة</th>
-                <th>العدد</th>
-                <th>سعر المبيع</th>
-            </tr>
-        </thead>
-        <tbody id="resultsBody"></tbody>
-    </table>
+        <section class="card">
+            <div class="card-title">🔍 بحث الأصناف</div>
 
-    <script>
+            <div class="search-grid">
+                <div class="field-group">
+                    <label for="search1">كلمة بحث 1 (إجباري أو اتركه فاضي)</label>
+                    <input type="text" id="search1" placeholder="مثال: دق">
+                </div>
+                <div class="field-group">
+                    <label for="search2">كلمة بحث 2 (اختياري)</label>
+                    <input type="text" id="search2" placeholder="مثال: تركي">
+                </div>
+                <div class="field-group">
+                    <label for="search3">كلمة بحث 3 (اختياري)</label>
+                    <input type="text" id="search3" placeholder="مثال: اخضر">
+                </div>
+                <div class="field-group">
+                    <label for="warehouse">جزء من اسم المستودع (اختياري)</label>
+                    <input type="text" id="warehouse" placeholder="مثال: ديوان أو 3-">
+                </div>
+            </div>
+
+            <div class="search-actions">
+                <button class="btn-primary" onclick="search()">
+                    🔍 بحث
+                </button>
+                <button class="btn-secondary" onclick="clearSearch()">
+                    🧹 مسح الحقول
+                </button>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-title">📋 النتائج</div>
+            <div class="table-wrapper">
+                <table id="results" style="display:none;">
+                    <thead>
+                    <tr>
+                        <th>المستودع</th>
+                        <th>اسم المادة</th>
+                        <th>العدد</th>
+                        <th>سعر المبيع</th>
+                    </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
     let data = [];
 
-    // تحميل ملف "جرد المواد.xlsx" تلقائياً من نفس المجلد
     async function loadExcel() {
+        const statusEl = document.getElementById('loadStatus');
         try {
+            statusEl.textContent = 'جاري تحميل «جرد المواد.xlsx» من السيرفر...';
             const response = await fetch('جرد المواد.xlsx');
             if (!response.ok) {
-                alert('تعذر تحميل ملف "جرد المواد.xlsx" من نفس المجلد.\nتأكد أن السيرفر شغال والملف موجود في نفس المجلد.');
+                statusEl.textContent = 'تعذر تحميل الملف «جرد المواد.xlsx». تأكد أنه مرفوع في نفس المستودع مع index.html.';
                 return;
             }
             const arrayBuffer = await response.arrayBuffer();
-            const dataUint8 = new Uint8Array(arrayBuffer);
-            const workbook = XLSX.read(dataUint8, {type: 'array'});
+            const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'array'});
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const allRows = XLSX.utils.sheet_to_json(sheet, {header:1});
             // الصف 1 و2 فوق، الصف 3 رؤوس، البيانات من الصف 4
             data = allRows.slice(3);
-            alert('✅ تم تحميل ' + data.length + ' صنف من "جرد المواد.xlsx".');
+            statusEl.textContent = '✅ تم تحميل ' + data.length + ' صنف من الملف.';
         } catch (e) {
             console.error(e);
-            alert('حدث خطأ أثناء قراءة ملف "جرد المواد.xlsx". راجع الكونسول.');
+            statusEl.textContent = 'حدث خطأ أثناء قراءة الملف. راجع الكونسول لمزيد من التفاصيل.';
         }
+    }
+
+    function clearSearch() {
+        document.getElementById('search1').value = '';
+        document.getElementById('search2').value = '';
+        document.getElementById('search3').value = '';
+        document.getElementById('warehouse').value = '';
+        document.getElementById('resultsBody').innerHTML = '';
+        document.getElementById('results').style.display = 'none';
     }
 
     function search() {
         if (data.length === 0) {
-            alert('❗ لم يتم تحميل البيانات بعد. تأكد من أن ملف "جرد المواد.xlsx" موجود وأن الصفحة أعيد تحميلها.');
+            alert('❗ لم يتم تحميل البيانات بعد. تأكد أن ملف «جرد المواد.xlsx» موجود وتم تحميل الصفحة كاملة.');
             return;
         }
 
@@ -76,8 +406,8 @@
         const wh = document.getElementById('warehouse').value.trim().toLowerCase();
 
         let results = data.filter(row => {
-            const warehouse = ((row[1] || '') + '').toLowerCase(); // B
-            const itemName  = ((row[2] || '') + '').toLowerCase(); // C
+            const warehouse = ((row[1] || '') + '').toLowerCase(); // B: المستودع
+            const itemName  = ((row[2] || '') + '').toLowerCase(); // C: اسم المادة
 
             const match1 = !s1 || itemName.includes(s1);
             const match2 = !s2 || itemName.includes(s2);
@@ -87,7 +417,7 @@
             return match1 && match2 && match3 && matchWh;
         });
 
-        // ترتيب أبجدي حسب اسم المادة
+        // ترتيب حسب اسم المادة أبجدياً
         results.sort((a, b) => {
             const nameA = (a[2] || '').toString();
             const nameB = (b[2] || '').toString();
@@ -98,15 +428,15 @@
         tbody.innerHTML = '';
 
         if (results.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="color:red;">لا توجد نتائج مطابقة</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="no-results">لا توجد نتائج مطابقة</td></tr>';
         } else {
             results.forEach(row => {
-                const tr = document.createElement('tr');
                 const warehouse = row[1] || '';
                 const itemName  = row[2] || '';
                 const qty       = row[3] || '';
                 const price     = row[4] || '';
 
+                const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${warehouse}</td>
                     <td>${itemName}</td>
@@ -120,8 +450,8 @@
         document.getElementById('results').style.display = 'table';
     }
 
-    // تحميل الملف تلقائياً عند فتح الصفحة
+    // تحميل الملف مباشرة عند فتح الصفحة
     loadExcel();
-    </script>
+</script>
 </body>
 </html>
