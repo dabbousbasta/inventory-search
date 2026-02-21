@@ -369,19 +369,33 @@
 
     // دالة توليد لون ثابت لكل مستودع
     function getColorForWarehouse(name) {
-        if (!name) return '#ffffff';
-        const colors = [
-            '#e3f2fd', '#e8f5e9', '#fff3e0',
-            '#f3e5f5', '#e0f7fa', '#fbe9e7',
-            '#ede7f6', '#f9fbe7'
-        ];
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        const index = Math.abs(hash) % colors.length;
-        return colors[index];
+    if (!name) return '#ffffff';
+
+    const lower = name.toString().toLowerCase();
+
+    // مستودع فيه كلمة "ديوان" → أزرق فاتح واضح
+    if (lower.includes('ديوان')) {
+        return '#d0e7ff'; // أزرق فاتح
     }
+
+    const colors = [
+        '#e8f5e9', // أخضر فاتح
+        '#fff3e0', // برتقالي فاتح
+        '#f3e5f5', // بنفسجي فاتح
+        '#e0f7fa', // سماوي فاتح
+        '#fbe9e7', // مشمشي فاتح
+        '#ede7f6', // بنفسجي رمادي
+        '#f9fbe7'  // أصفر باهت
+    ];
+
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
+}
+
 
     async function loadExcel() {
         const statusEl = document.getElementById('loadStatus');
