@@ -432,22 +432,31 @@
         const wh = document.getElementById('warehouse').value.trim().toLowerCase();
 
         let results;
-        if (!s1 && !s2 && !s3 && !wh) {
-            // لا يوجد أي إدخال → كل النتائج
-            results = [...data];
-        } else {
-            results = data.filter(row => {
-                const warehouse = ((row[1] || '') + '').toLowerCase(); // B
-                const itemName  = ((row[2] || '') + '').toLowerCase(); // C
+if (!s1 && !s2 && !s3 && !wh) {
+    // لا يوجد أي إدخال → كل النتائج لكن بدون صفوف مستودع فارغ
+    results = data.filter(row => {
+        const warehouse = ((row[1] || '') + '').trim();
+        return warehouse !== '';
+    });
+} else {
+    results = data.filter(row => {
+        const warehouseRaw = ((row[1] || '') + '');
+        const warehouse = warehouseRaw.toLowerCase().trim(); // B
+        const itemName  = ((row[2] || '') + '').toLowerCase(); // C
 
-                const match1 = !s1 || itemName.includes(s1);
-                const match2 = !s2 || itemName.includes(s2);
-                const match3 = !s3 || itemName.includes(s3);
-                const matchWh = !wh || warehouse.includes(wh);
-
-                return match1 && match2 && match3 && matchWh;
-            });
+        // استبعاد الصفوف ذات المستودع الفارغ
+        if (!warehouseRaw.trim()) {
+            return false;
         }
+
+        const match1 = !s1 || itemName.includes(s1);
+        const match2 = !s2 || itemName.includes(s2);
+        const match3 = !s3 || itemName.includes(s3);
+        const matchWh = !wh || warehouse.includes(wh);
+
+        return match1 && match2 && match3 && matchWh;
+    });
+}
 
         results.sort((a, b) => {
             const nameA = (a[2] || '').toString();
