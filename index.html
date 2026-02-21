@@ -349,19 +349,23 @@
     let data = [];
 
     function formatQty(value) {
-        const num = Number(value);
-        if (isNaN(num)) return value || '';
-        return num.toLocaleString('ar-EG', { maximumFractionDigits: 0 });
-    }
+    const num = Number(value);
+    if (isNaN(num)) return value || '';
+    // إنجليزي مع فواصل آلاف وبدون كسور
+    return num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+	}
+
 
     function formatPrice(value) {
-        const num = Number(value);
-        if (isNaN(num)) return value || '';
-        return num.toLocaleString('ar-EG', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
+    const num = Number(value);
+    if (isNaN(num)) return value || '';
+    // إنجليزي مع فواصل آلاف ورقمين عشريين
+    return num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+	}
+
 
     // دالة توليد لون ثابت لكل مستودع
     function getColorForWarehouse(name) {
