@@ -394,7 +394,9 @@
         const statusEl = document.getElementById('loadStatus');
         try {
             statusEl.textContent = 'جاري تحميل «جرد المواد.xlsx» من السيرفر...';
-            const response = await fetch('جرد المواد.xlsx');
+            const url = 'جرد المواد.xlsx?v=' + Date.now(); // يمنع الكاش
+const response = await fetch(url);
+
             if (!response.ok) {
                 statusEl.textContent = 'تعذر تحميل الملف «جرد المواد.xlsx». تأكد أنه مرفوع في نفس المستودع مع index.html.';
                 return;
